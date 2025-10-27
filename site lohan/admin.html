@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin | Barbearia do Lohan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #222, #444);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #111;
+      padding: 1.5rem;
+      text-align: center;
+      color: #f7c04a;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #333;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+    }
+
+    h2 {
+      color: #f7c04a;
+      text-align: center;
+    }
+
+    .contador {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      color: #ffd700;
+    }
+
+    .filtros {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    select, input {
+      padding: 0.7rem;
+      border-radius: 8px;
+      border: none;
+      width: 48%;
+      max-width: 300px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid #555;
+      text-align: center;
+    }
+
+    th {
+      background: #f7c04a;
+      color: #000;
+    }
+
+    tr:hover {
+      background: #444;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn-excluir {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    .btn-excluir:hover {
+      background: #ff6b5b;
+    }
+
+    .btn-limpar {
+      background: #c0392b;
+      color: #fff;
+      margin-top: 1rem;
+      display: block;
+      width: 100%;
+    }
+
+    .btn-limpar:hover {
+      background: #e74c3c;
+    }
+
+    .btn-voltar {
+      display: block;
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #f7c04a;
+      text-decoration: none;
+    }
+
+    .logout {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .logout button {
+      background: #f7c04a;
+      color: #000;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .logout button:hover {
+      background: #ffdb6e;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Painel Administrativo 💈</h1>
+  </header>
+
+  <div class="container">
+    <h2>📋 Lista de Agendamentos</h2>
+    <div class="contador" id="contadorBarbeiros">
+      Lohan: 0 clientes | Claudio: 0 clientes
+    </div>
+
+    <div class="filtros">
+      <select id="filtroBarbeiro">
+        <option value="">Filtrar por Barbeiro</option>
+        <option value="Lohan">Lohan</option>
+        <option value="Claudio">Claudio</option>
+      </select>
+
+      <select id="filtroServico">
+        <option value="">Filtrar por Serviço</option>
+        <option value="Corte">Corte</option>
+        <option value="Barba">Barba</option>
+        <option value="Cabelo + Barba">Cabelo + Barba</option>
+        <option value="Pezinho">Pezinho</option>
+        <option value="Luzes">Luzes</option>
+        <option value="Relaxamento">Relaxamento</option>
+        <option value="Nevou">Nevou</option>
+      </select>
+
+      <input type="text" id="pesquisaNome" placeholder="Pesquisar por nome...">
+    </div>
+
+    <table id="tabela-agendamentos">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Serviço</th>
+          <th>Barbeiro</th>
+          <th>Horário</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button class="btn btn-limpar" onclick="limparTudo()">🗑️ Limpar Todos os Agendamentos</button>
+    <a href="index.html" class="btn-voltar">← Voltar à Página Inicial</a>
+
+    <div class="logout">
+      <button onclick="sair()">🚪 Sair</button>
+    </div>
+  </div>
+
+  <script>
+    // Proteção de acesso
+    if (sessionStorage.getItem("adminLogado") !== "true") {
+      window.location.href = "login.html";
+    }
+
+    const tabelaBody = document.querySelector("#tabela-agendamentos tbody");
+    const filtroBarbeiro = document.getElementById("filtroBarbeiro");
+    const filtroServico = document.getElementById("filtroServico");
+    const pesquisaNome = document.getElementById("pesquisaNome");
+    const contadorBarbeiros = document.getElementById("contadorBarbeiros");
+
+    function atualizarContador(agendamentos) {
+      const lohan = agendamentos.filter(a => a.barbeiro === "Lohan").length;
+      const claudio = agendamentos.filter(a => a.barbeiro === "Claudio").length;
+      contadorBarbeiros.textContent = `Lohan: ${lohan} clientes | Claudio: ${claudio} clientes`;
+    }
+
+    function carregarAgendamentos() {
+      const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+      const barbeiro = filtroBarbeiro.value.toLowerCase();
+      const servico = filtroServico.value.toLowerCase();
+      const nome = pesquisaNome.value.toLowerCase();
+
+      const filtrados = agendamentos.filter(a =>
+        (!barbeiro || a.barbeiro.toLowerCase() === barbeiro) &&
+        (!servico || a.servico.toLowerCase() === servico) &&
+        (!nome || a.nome.toLowerCase().includes(nome))
+      );
+
+      tabelaBody.innerHTML = "";
+      atualizarContador(agendamentos);
+
+      if (filtrados.length === 0) {
+        tabelaBody.innerHTML = "<tr><td colspan='5'>Nenhum agendamento encontrado</td></tr>";
+        return;
+      }
+
+      filtrados.forEach((a, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${a.nome}</td>
+          <td>${a.servico}</td>
+          <td>${a.barbeiro}</td>
+          <td>${a.horario}</td>
+          <td><button class="btn btn-excluir" onclick="excluirAgendamento(${index})">Excluir</button></td>
+        `;
+        tabelaBody.appendChild(tr);
+      });
+    }
+
+    function excluirAgendamento(index) {
+      const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+      if (confirm("Deseja excluir este agendamento?")) {
+        agendamentos.splice(index, 1);
+        localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+        carregarAgendamentos();
+      }
+    }
+
+    function limparTudo() {
+      if (confirm("Tem certeza que deseja apagar TODOS os agendamentos?")) {
+        localStorage.removeItem("agendamentos");
+        carregarAgendamentos();
+      }
+    }
+
+    function sair() {
+      sessionStorage.removeItem("adminLogado");
+      window.location.href = "login.html";
+    }
+
+    filtroBarbeiro.addEventListener("change", carregarAgendamentos);
+    filtroServico.addEventListener("change", carregarAgendamentos);
+    pesquisaNome.addEventListener("input", carregarAgendamentos);
+
+    carregarAgendamentos();
+  </script>
+</body>
+</html>

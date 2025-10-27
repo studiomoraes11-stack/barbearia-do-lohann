@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia Do Lohan</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Barbearia Do Lohan</h1>
+            <p>Segunda a sábado: 8:40 - 20:00</p>
+            <a href="agendamento.html" class="btn-principal">Agende seu horário</a>
+        </div>
+    </header>
+
+    <section class="sobre">
+        <div class="sobre-container">
+            <h2>Bem-vindo à Barbearia Do Lohan!</h2>
+            <p>Oferecemos cortes modernos, barba impecável e tratamentos especiais. Ambiente confortável e profissionais qualificados para deixar você estiloso.</p>
+        </div>
+    </section>
+
+    <section class="servicos">
+        <h2>Nossos Serviços</h2>
+        <div class="servicos-grid" id="servicos-lista"></div>
+    </section>
+
+    <section class="contato">
+        <h2>Contato</h2>
+        <p>📞 WhatsApp: (11) 99999-9999</p>
+        <p>📍 Rua Exemplo, 123 - Bairro da Barbearia</p>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Barbearia Do Lohan. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Serviços com fotos e valores
+        const servicos = [
+            {nome: "Corte", valor: 35, foto: "fotos/img4.jpg"},
+            {nome: "Barba", valor: 15, foto: "fotos/barba.jpg"},
+            {nome: "Cabelo + Barba", valor: 40, foto: "imagens/cabelo_barba.jpg"},
+            {nome: "Pezinho", valor: 15, foto: "imagens/pezinho.jpg"},
+            {nome: "Luzes", valor: 60, foto: "imagens/luzes.jpg"},
+            {nome: "Relaxamento", valor: 60, foto: "imagens/relaxamento.jpg"},
+            {nome: "Nevou", valor: 90, foto: "fotos/nevou.jpg"}
+        ];
+
+        const servicosLista = document.getElementById("servicos-lista");
+
+        servicos.forEach(servico => {
+            const card = document.createElement("div");
+            card.className = "card-servico";
+            card.innerHTML = `
+                <img src="${servico.foto}" alt="${servico.nome}">
+                <h3>${servico.nome}</h3>
+                <p>R$${servico.valor}</p>
+                <a href="agendamento.html?servico=${encodeURIComponent(servico.nome)}" class="btn-agendar">Agendar</a>
+            `;
+            servicosLista.appendChild(card);
+        });
+    </script>
+</body>
+</html>

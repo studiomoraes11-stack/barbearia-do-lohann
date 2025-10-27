@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento | Barbearia do Lohan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body.agendamento-body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #222, #444);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: #111;
+            color: #f7c04a;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }
+
+        .form-card {
+            background: #333;
+            padding: 2rem;
+            margin: 2rem auto;
+            border-radius: 15px;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+            color: #f7c04a;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: 8px;
+            border: none;
+            margin-top: 0.3rem;
+        }
+
+        .btn-principal {
+            display: block;
+            width: 100%;
+            margin-top: 1.5rem;
+            background: #f7c04a;
+            color: #000;
+            border: none;
+            font-weight: bold;
+            padding: 0.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-principal:hover {
+            background: #ffdb6e;
+        }
+
+        .btn-voltar {
+            display: block;
+            text-align: center;
+            color: #f7c04a;
+            margin: 1.5rem auto;
+            text-decoration: none;
+        }
+
+        .confirmacao {
+            text-align: center;
+            background: #28a745;
+            color: white;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body class="agendamento-body">
+    <header>
+        <h1>Agende seu Horário 💈</h1>
+        <p>Escolha o serviço, barbeiro e horário disponível</p>
+    </header>
+
+    <section class="agendamento">
+        <form id="form-agendamento" class="form-card">
+            <label for="nome">👤 Nome:</label>
+            <input type="text" id="nome" placeholder="Seu nome" required>
+
+            <!-- Se veio da página principal, o serviço fica oculto -->
+            <div id="campo-servico">
+                <label for="servicoSelect">💇‍♂️ Serviço:</label>
+                <select id="servicoSelect" required>
+                    <option value="">Selecione o serviço</option>
+                    <option value="Corte">Corte - R$35</option>
+                    <option value="Barba">Barba - R$15</option>
+                    <option value="Cabelo + Barba">Cabelo + Barba - R$40</option>
+                    <option value="Pezinho">Pezinho - R$15</option>
+                    <option value="Luzes">Luzes - R$60</option>
+                    <option value="Relaxamento">Relaxamento - R$60</option>
+                    <option value="Nevou">Nevou - R$90</option>
+                </select>
+            </div>
+
+            <input type="text" id="servico" readonly style="display:none;">
+
+            <label for="barbeiro">✂️ Barbeiro:</label>
+            <select id="barbeiro" required>
+                <option value="">Selecione</option>
+                <option value="Lohan">Lohan</option>
+                <option value="Claudio">Claudio</option>
+            </select>
+
+            <label for="horario">🕒 Horário:</label>
+            <select id="horario" required></select>
+
+            <button type="submit" class="btn-principal">Confirmar Agendamento</button>
+        </form>
+
+        <div id="confirmacao" class="confirmacao"></div>
+
+        <a href="index.html" class="btn-voltar">← Voltar à Página Inicial</a>
+    </section>
+
+    <script>
+        // --- Define o serviço vindo da página principal ---
+        const params = new URLSearchParams(window.location.search);
+        const servicoSelecionado = params.get("servico");
+        const campoServico = document.getElementById("campo-servico");
+        const inputServico = document.getElementById("servico");
+
+        if (servicoSelecionado) {
+            campoServico.style.display = "none";
+            inputServico.style.display = "block";
+            inputServico.value = servicoSelecionado;
+        } else {
+            campoServico.style.display = "block";
+            inputServico.style.display = "none";
+        }
+
+        // --- Criação de horários (08:40 até 20:00 de 30 em 30min) ---
+        const horarios = [];
+        let hora = 8, minuto = 40;
+        while (hora < 20 || (hora === 20 && minuto === 0)) {
+            const h = hora.toString().padStart(2, "0");
+            const m = minuto.toString().padStart(2, "0");
+            horarios.push(`${h}:${m}`);
+            minuto += 30;
+            if (minuto >= 60) {
+                minuto = 0;
+                hora++;
+            }
+        }
+
+        const horarioSelect = document.getElementById("horario");
+
+        function atualizarHorarios() {
+            const barbeiro = document.getElementById("barbeiro").value;
+            horarioSelect.innerHTML = "<option value=''>Selecione um horário</option>";
+            if (!barbeiro) return;
+
+            const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+            const ocupados = agendamentos.filter(a => a.barbeiro === barbeiro).map(a => a.horario);
+
+            horarios.forEach(hora => {
+                const option = document.createElement("option");
+                option.value = hora;
+                option.textContent = hora;
+                if (ocupados.includes(hora)) {
+                    option.disabled = true;
+                    option.textContent += " (indisponível)";
+                }
+                horarioSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById("barbeiro").addEventListener("change", atualizarHorarios);
+
+        // --- Função principal de agendamento ---
+        document.getElementById("form-agendamento").addEventListener("submit", e => {
+            e.preventDefault();
+
+            const nome = document.getElementById("nome").value.trim();
+            const servico = servicoSelecionado || document.getElementById("servicoSelect").value;
+            const barbeiro = document.getElementById("barbeiro").value;
+            const horario = document.getElementById("horario").value;
+
+            if (!nome || !servico || !barbeiro || !horario) {
+                alert("Por favor, preencha todos os campos!");
+                return;
+            }
+
+            const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+            const ocupado = agendamentos.some(a => a.barbeiro === barbeiro && a.horario === horario);
+
+            if (ocupado) {
+                alert("Esse horário já foi escolhido por outro cliente!");
+                atualizarHorarios();
+                return;
+            }
+
+            agendamentos.push({ nome, servico, barbeiro, horario });
+            localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+
+            const confirmacao = document.getElementById("confirmacao");
+            confirmacao.style.display = "block";
+            confirmacao.innerHTML = `
+                <h3>✅ Agendamento Confirmado!</h3>
+                <p><strong>${nome}</strong>, seu horário foi reservado.</p>
+                <p><strong>Serviço:</strong> ${servico}</p>
+                <p><strong>Barbeiro:</strong> ${barbeiro}</p>
+                <p><strong>Horário:</strong> ${horario}</p>
+            `;
+
+            document.getElementById("form-agendamento").reset();
+            atualizarHorarios();
+        });
+
+        // Inicializa horários
+        atualizarHorarios();
+    </script>
+</body>
+</html>
